@@ -5,7 +5,7 @@ import re
 import os
 
 file = 'Data\last_seen_id.txt'
-covid_hospitals = pd.read_csv("Data\ICMRTestingLabs.csv")  # Reading the necessary datasets
+covid_hospitals = pd.read_csv("Data\ICMRTestingLabs.csv")  #Reading the necessary datasets
 hospitals = pd.read_csv("Data\devfest.csv")
 cities = []
 cities = covid_hospitals.city.unique()
@@ -18,6 +18,7 @@ ACCESS_SECRET = os.environ.get("ACCESS_SECRET")
 auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
 auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
 api = tweepy.API(auth)
+
 
 
 
@@ -89,7 +90,6 @@ def covid_hospitals_list(state):
         hosp_list.append(string)
     return(hosp_list, total1)
 
-
 mentions = api.mentions_timeline()
 print(mentions[0].text, mentions[0].id)
 store_last_seen_id(mentions[0].id, file)
@@ -103,8 +103,7 @@ def reply_to_tweets():
     # would be cut off.
     mentions = api.mentions_timeline(last_seen_id, tweet_mode='extended')
     for mention in reversed(mentions):
-        if 'corona' in mention.full_text.lower() or 'covid'
-        or 'covid-19' in mention.full_text.lower():
+        if 'corona' in mention.full_text.lower() or 'covid' or 'covid-19' in mention.full_text.lower():
             print("COVID tweet found!")
             total_covid = 0
             for i in states:
