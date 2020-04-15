@@ -4,14 +4,16 @@ import time
 import re
 import os
 
-file = 'Data\last_seen_id.txt'
-covid_hospitals = pd.read_csv("Data\ICMRTestingLabs.csv")  # Reading the necessary datasets
-hospitals = pd.read_csv("Data\devfest.csv")
+file = 'Data/last_seen_id.txt'
+# Reading the necessary datasets
+covid_hospitals = pd.read_csv("Data/ICMRTestingLabs.csv")
+hospitals = pd.read_csv("Data/devfest.csv")
 cities = []
 cities = covid_hospitals.city.unique()
 states = covid_hospitals.state.unique()
 
-CONSUMER_KEY = os.environ.get("CONSUMER_KEY")   #Getting the login credentials of the Bot
+# Getting the login credentials pf the Bot
+CONSUMER_KEY = os.environ.get("CONSUMER_KEY")
 CONSUMER_SECRET = os.environ.get("CONSUMER_SECRET")
 ACCESS_KEY = os.environ.get("ACCESS_KEY")
 ACCESS_SECRET = os.environ.get("ACCESS_SECRET")
@@ -20,32 +22,41 @@ auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
 api = tweepy.API(auth)
 
 
-
 def retrieve_last_seen_id(file_name):
 
-    f_read = open(file_name, 'r') #Opens file containing the number of the last Tweet the bot responded to.
+    # Opens file containing the number of the
+    # last Tweet the bot responded to.
+    f_read = open(file_name, 'r')
     last_seen_id = int(f_read.read().strip())
     f_read.close()
     return last_seen_id
 
 
 def store_last_seen_id(last_seen_id, file_name):
+
+    # Stores the number of the most recent
+    # Tweet responded to in a file.
     f_write = open(file_name, 'w')
-    f_write.write(str(last_seen_id)) #Stores the number of the most recent Tweet responded to in a file.
+    f_write.write(str(last_seen_id))
     f_write.close()
     return
 
 
 def find_hospitals(pincode):
-    pincode[0].strip()      #Pincode is obtained from the tweet as a list of a string.
+    pincode[0].strip()  # Pincode is obtained from the tweet as a
+    # list of a string.
     hospital_area = pd.DataFrame()
     hospital_area = hospitals[hospitals["Pincode"] == pincode[0]]
     hosp = hospital_area.reset_index()
-    hosp = hosp.drop(['index'], axis=1) #Performing formatting on the new dataset so it contains only relevant columns
+    hosp = hosp.drop(['index'], axis=1)
+    # Performing formatting on the new dataset
+    # so it contains only relevant columns
     total_rows = len(hosp.axes[0])
     name = hosp['Hospital_Name']
     hosp.drop(labels=['Hospital_Name'], axis=1, inplace=True)
-    hosp.insert(0, 'Hospital_Name', name) #Reordering columns to make the address more readable
+    hosp.insert(0, 'Hospital_Name', name)
+    # Reordering columns
+    # to make the address more readable
     print(total_rows)
     dict = {}
     hosp_list = []
@@ -53,7 +64,9 @@ def find_hospitals(pincode):
     dict = hosp.to_dict()
     print(dict.keys())
     for i in range(total_rows):
-        dict['Hospital_Name'][i] = dict['Hospital_Name'][i] + ', ' #Formatting the address to look better
+        dict['Hospital_Name'][i] = dict['Hospital_Name'][i] + ', '
+        # Formatting the address
+        # to look better
         dict['State'][i] = dict['State'][i] + ', '
         dict['District'][i] = dict['District'][i] + ', '
         dict['Location'][i] = dict['Location'][i] + ' '
@@ -63,7 +76,8 @@ def find_hospitals(pincode):
         for j in dict.keys():
             string = string + dict[j][i]
             hosp_list.append(string)
-    return(hosp_list, total_rows)           #Returns the list of hospitals and the number of hospitals
+    return(hosp_list, total_rows)  # Returns the list of
+    # hospitals and the number of hospitals
 
 
 def covid_hospitals_list(state):
@@ -111,7 +125,9 @@ def reply_to_tweets():
                 if i in mention.full_text:
                     hosp_list, total_covid = covid_hospitals_list(i)
                     break
-            if total_covid == 0: #Checking if any facilities are present
+            if total_covid == 0:
+                # Checking if
+                # any facilities are present
                 api.update_status('@' + mention.user.screen_name + ' ' +
                                   'Uh oh! Unforturnately, we could not' +
                                   'find any hospitals in this state.' +
@@ -122,11 +138,13 @@ def reply_to_tweets():
                                       hosp_list[i], mention.id)
                     time.sleep(1)
         else:
-            pin_code = re.findall(r' (\d{6})', mention.full_text)       #Extracts pincode from Tweet
+            pin_code = re.findall(r' (\d{6})', mention.full_text)
+            # Extracts pincode from Tweet
             print("Found Tweet!")
             if len(pin_code) != 0:
                 hosp_list, total = find_hospitals(pin_code)
-                if total == 0:  #Checks if there are any hospitals in that pincode
+                if total == 0:
+                    # Checks if there are any hospitals in that pincode
                     api.update_status('@' + mention.user.screen_name +
                                       ' ' +
                                       'Uh oh! Unforturnately, we could not' +
